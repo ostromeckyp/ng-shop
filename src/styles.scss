@@ -4,6 +4,10 @@
 @use "tailwnd";
 @use 'typography';
 
+:root {
+  --mat-toolbar-standard-height: 64px;
+}
+
 html {
   @include mat.theme((
     color: (
