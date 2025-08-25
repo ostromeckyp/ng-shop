@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideExperimentalZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -18,7 +18,7 @@ export const picsumPhotosLoader = (config: ImageLoaderConfig): string => {
 };
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideExperimentalZonelessChangeDetection(), provideRouter(routes), provideHttpClient(), {
+  providers: [provideZonelessChangeDetection(), provideRouter(routes), provideHttpClient(), {
     provide: IMAGE_LOADER,
     useValue: picsumPhotosLoader,
   },]

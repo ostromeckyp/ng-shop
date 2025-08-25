@@ -1,8 +1,20 @@
 <div class="products-container">
   <h1>Products</h1>
 
+  <div class="search-container">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search products</mat-label>
+      <input
+        matInput
+        placeholder="Search by name or description..."
+        [(ngModel)]="searchFilter"
+        type="text">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
   <div class="products-grid">
-    @for (product of products(); track product.id) {
+    @for (product of filteredProducts(); track product.id) {
       <mat-card class="product-card">
         <div class="product-card__image">
           <img
@@ -33,7 +45,12 @@
       </mat-card>
     } @empty {
       <div class="no-products">
-        <p>No products available.</p>
+        @if (searchFilter()) {
+          <p>No products found matching "{{ searchFilter() }}".</p>
+          <p>Try adjusting your search terms.</p>
+        } @else {
+          <p>No products available.</p>
+        }
       </div>
     }
   </div>
