@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,11 +18,7 @@ import { NgOptimizedImage } from '@angular/common';
   styleUrl: './products-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductsListComponent implements OnInit {
-  constructor(protected productsService: ProductsService) {}
-
-  ngOnInit(): void {
-    // Fetch products when the component initializes
-    this.productsService.fetchProducts();
-  }
+export class ProductsListComponent {
+  private readonly productsService = inject(ProductsService);
+  protected readonly products = this.productsService.products;
 }

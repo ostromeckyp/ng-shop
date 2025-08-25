@@ -2,11 +2,14 @@
   <h1>Products</h1>
 
   <div class="products-grid">
-    @for (product of productsService.products(); track product.id) {
+    @for (product of products(); track product.id) {
       <mat-card class="product-card">
         <div class="product-card__image">
           <img
-            mat-card-image [ngSrc]="product.imageUrl" fill
+            mat-card-image [ngSrc]="product.imageUrl"
+            sizes="(max-width: 600px) 80vw, 25vw"
+            fill
+            placeholder="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             [alt]="product.name" priority
           >
         </div>
