@@ -11,6 +11,8 @@ import { derivedFrom } from 'ngxtension/derived-from';
 import { debounceTime, map, pipe } from 'rxjs';
 import { injectQueryParams } from 'ngxtension/inject-query-params';
 import { injectSetQuery } from '@shared/utils/set-query-params';
+import { CartService } from '@features/cart';
+import { Product } from '@features/products/models/product.model';
 
 @Component({
   selector: 'app-products-list',
@@ -30,6 +32,7 @@ import { injectSetQuery } from '@shared/utils/set-query-params';
 })
 export class ProductsListComponent {
   private readonly productsService = inject(ProductsService);
+  private readonly cartService = inject(CartService);
   private readonly queryParam = injectQueryParams('search');
   private readonly setQuery = injectSetQuery();
 
@@ -60,4 +63,8 @@ export class ProductsListComponent {
       product.description.toLowerCase().includes(filter)
     );
   });
+
+  protected addToCart(product: Product): void {
+    this.cartService.addToCart(product);
+  }
 }
