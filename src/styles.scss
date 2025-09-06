@@ -3,6 +3,7 @@
 @use '@angular/material' as mat;
 @use "tailwnd";
 @use 'typography';
+@use 'material';
 
 :root {
   --mat-toolbar-standard-height: 64px;

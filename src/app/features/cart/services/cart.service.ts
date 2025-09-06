@@ -1,17 +1,22 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { Product } from '@features/products/models/product.model';
 import { CartItem } from '../model/cart-item.model';
-import { Subject } from 'rxjs';
+import { catchError, map, of, Subject, tap } from 'rxjs';
 import { connect } from 'ngxtension/connect';
+import { injectLocalStorage } from 'ngxtension/inject-local-storage';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 type CartState = {
   items: CartItem[];
+  error?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
+  private readonly cart = injectLocalStorage<CartItem[]>('cartId', {storageSync: true});
+
   private readonly state = signal<CartState>({
     items: []
   });
@@ -33,26 +38,65 @@ export class CartService {
   private readonly decreaseItem$ = new Subject<number>();
   private readonly clearCart$ = new Subject<void>();
 
+  //side effects
+  // private readonly syncCart$ = new Subject<void>();
+
   constructor() {
+    //Approach 1
+    const addItemSuccess$ = new Subject<CartItem[]>();
+    const addItemError$ = new Subject<string>();
+    this.addItem$.pipe(
+      map((product: Product) => {
+        const existingItemIndex = this.items().findIndex(i => i.product.id === product.id);
+        return existingItemIndex >= 0 ? this.items().map(item =>
+          item.product.id === product.id
+            ? {...item, quantity: item.quantity + 1}
+            : item) : [...this.items(), {product, quantity: 1}];
+      }),
+      tap((items: CartItem[]) => {
+        this.cart.set(items);
+        addItemSuccess$.next(items);
+      }),
+      catchError(err => {
+        addItemError$.next(err);
+        return of([])
+      }),
+      takeUntilDestroyed()
+    ).subscribe();
+
+    // Approach 2
+    // const itemAdded$ = this.addItem$.pipe(
+    //   map((product) => {
+    //     const existingItemIndex = this.items().findIndex(i => i.product.id === product.id);
+    //     return existingItemIndex >= 0 ? this.items().map(item =>
+    //       item.product.id === product.id
+    //         ? {...item, quantity: item.quantity + 1}
+    //         : item) : [...this.items(), {product, quantity: 1}];
+    //   }),
+    //   tap((items) =>
+    //     this.cart.set(items)
+    //   ),
+    // );
+    const storedCart$ = toObservable(this.cart);
+
     connect(this.state)
+      .with(storedCart$, (state, items) => ({
+        ...state,
+        items: items || []
+      }))
+      // .with(
+      //   itemAdded$, (state, items) => {
+      //     return {
+      //       ...state,
+      //       items
+      //     };
+      //   })
       .with(
-        this.addItem$, (state, product) => {
-          const existingItemIndex = state.items.findIndex(i => i.product.id === product.id);
-          if (existingItemIndex >= 0) {
-            return {
-              ...state,
-              items: state.items.map(item =>
-                item.product.id === product.id
-                  ? {...item, quantity: item.quantity + 1}
-                  : item
-              )
-            };
-          } else {
-            return {
-              ...state,
-              items: [...state.items, {product, quantity: 1}]
-            };
-          }
+        addItemSuccess$, (state, items) => {
+          return {
+            ...state,
+            items
+          };
         })
       .with(
         this.clearCart$, (state, productId) => ({
@@ -76,7 +120,14 @@ export class CartService {
           };
         }
         return state;
-      });
+      })
+    // TODO - when you uncomment - add share to itemAdded$
+    // .with(itemAdded$, (state, productId) => {
+    //   return {
+    //     ...state,
+    //     synced: true
+    //   };
+    // });
   }
 
   // API

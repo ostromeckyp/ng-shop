@@ -33,13 +33,15 @@
                   <button
                     mat-icon-button
                     (click)="decreaseQuantity(item.product.id)"
-                    [disabled]="item.quantity <= 1">
+                    [disabled]="item.quantity <= 1"
+                  >
                     <mat-icon>remove</mat-icon>
                   </button>
                   <span class="quantity">{{ item.quantity }}</span>
                   <button
                     mat-icon-button
-                    (click)="increaseQuantity(item.product.id)">
+                    (click)="increaseQuantity(item.product.id)"
+                  >
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
@@ -47,7 +49,8 @@
                 <button
                   mat-icon-button
                   color="warn"
-                  (click)="removeFromCart(item.product.id)">
+                  (click)="removeFromCart(item.product.id)"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -76,7 +79,7 @@
             </div>
           </mat-card-content>
           <mat-card-actions>
-            <button mat-flat-button color="primary" class="checkout-button">
+            <button (click)="proceedToCheckout()" mat-flat-button color="primary" class="checkout-button">
               <mat-icon>payment</mat-icon>
               Checkout
             </button>

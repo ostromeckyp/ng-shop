@@ -101,3 +101,141 @@ Here is a link to the most recent Angular style guide https://angular.dev/style-
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+### State Management
+- Use signals for local component state
+- Use `computed()` for derived state
+- Use ngxtension/connect for complex state management
+- Keep state transformations pure and predictable
+- Do NOT use `mutate` on signals, use `update` or `set` instead
+- ### Templates
+- Keep templates simple and avoid complex logic
+- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
+
+#### Examples
+
+```ts
+import { computed, Injectable, signal } from '@angular/core';
+import { Product } from '@features/products/models/product.model';
+import { CartItem } from '../model/cart-item.model';
+import { catchError, Subject, tap } from 'rxjs';
+import { connect } from 'ngxtension/connect';
+import { injectLocalStorage } from 'ngxtension/inject-local-storage';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+
+type CartState = {
+  items: CartItem[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CartService {
+  private readonly cart = injectLocalStorage<CartItem[]>('cartId', {storageSync: true});
+
+  private readonly state = signal<CartState>({
+    items: []
+  });
+
+  // selectors (derived state)
+  readonly items = computed(() => this.state().items);
+
+  readonly totalItems = computed(() =>
+    this.items().reduce((total, item) => total + item.quantity, 0)
+  );
+  readonly totalPrice = computed(() =>
+    this.items().reduce((total, item) => total + (item.product.price * item.quantity), 0)
+  );
+  readonly isEmpty = computed(() => this.items().length === 0);
+
+  // sources
+  private readonly addItem$ = new Subject<Product>();
+  private readonly removeFromCart$ = new Subject<number>();
+  private readonly decreaseItem$ = new Subject<number>();
+  private readonly clearCart$ = new Subject<void>();
+  
+  constructor() {
+    const addItemSuccess$ = new Subject<CartItem[]>();
+    this.addItem$.pipe(
+      map((product: Product) => {
+        const existingItemIndex = this.items().findIndex(i => i.product.id === product.id);
+        return existingItemIndex >= 0 ? this.items().map(item =>
+          item.product.id === product.id
+            ? {...item, quantity: item.quantity + 1}
+            : item) : [...this.items(), {product, quantity: 1}];
+      }),
+      tap((items: CartItem[]) => {
+        this.cart.set(items);
+        addItemSuccess$.next(items);
+      }),
+      takeUntilDestroyed()
+    ).subscribe();
+
+    const storedCart$ = toObservable(this.cart);
+
+    connect(this.state)
+      .with(storedCart$, (state, items) => ({
+        ...state,
+        items: items || []
+      }))
+      .with(
+        addItemSuccess$, (state, items) => {
+          return {
+            ...state,
+            items
+          };
+        })
+      .with(
+        this.clearCart$, (state, productId) => ({
+          ...state,
+          items: []
+        }))
+      .with(this.removeFromCart$, (state, productId) => {
+        return {
+          ...state,
+          items: state.items.filter(item => item.product.id !== productId)
+        }
+      })
+      .with(this.decreaseItem$, (state, productId) => {
+        const existingItemIndex = state.items.findIndex(i => i.product.id === productId);
+        if (existingItemIndex >= 0) {
+          return {
+            ...state,
+            items: state.items.map(item =>
+              item.product.id === productId
+                ? {...item, quantity: item.quantity -= 1} : item),
+          };
+        }
+        return state;
+      })
+  }
+
+  // API
+  addToCart(item: Product) {
+    this.addItem$.next(item);
+  }
+
+  removeFromCart(productId: number): void {
+    this.removeFromCart$.next(productId);
+  }
+
+  decreaseItem(productId: number): void {
+    this.decreaseItem$.next(productId);
+  }
+
+  clearCart(): void {
+    this.clearCart$.next();
+  }
+
+  getItem(productId: number) {
+    return computed(() => this.items().find(item => item.product.id === productId));
+  }
+}
+```
+
+It's complex example of feature state aka. facade service using signals and ngxtension library. It manages a shopping cart's state, including adding, removing, and updating items, as well as calculating totals. The service uses RxJS subjects to handle actions and connects them to the state signal for reactive updates.
+It also integrates with local storage to persist the cart state across sessions.
+
+#### Sources
+https://ngxtension.netlify.app/utilities/signals/connect/
+https://ngxtension.netlify.app/utilities/injectors/inject-local-storage/

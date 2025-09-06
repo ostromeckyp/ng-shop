@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatBadgeModule } from '@angular/material/badge';
 import { NgOptimizedImage } from '@angular/common';
+import { Router } from '@angular/router';
 import { CartService } from '@features/cart';
 
 @Component({
@@ -24,6 +25,7 @@ import { CartService } from '@features/cart';
 })
 export class CartComponent {
   private readonly cartService = inject(CartService);
+  private readonly router = inject(Router);
 
   protected readonly cartItems = this.cartService.items;
   protected readonly totalItems = this.cartService.totalItems;
@@ -47,5 +49,9 @@ export class CartComponent {
 
   protected decreaseQuantity(productId: number): void {
     this.cartService.decreaseItem(productId);
+  }
+
+  protected proceedToCheckout(): void {
+    this.router.navigate(['/checkout']);
   }
 }
