@@ -28,7 +28,7 @@ export class CheckoutFacade {
       street: this.fb.nonNullable.control('', [Validators.required]),
       city: this.fb.nonNullable.control('', [Validators.required]),
       state: this.fb.nonNullable.control('', [Validators.required]),
-      zipCode: this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/^\d{5}(-\d{4})?$/)]),
+      zipCode: this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/^\d{2}(-\d{3})?$/)]),
       country: this.fb.nonNullable.control('', [Validators.required])
     }),
     paymentInfo: this.fb.nonNullable.group({

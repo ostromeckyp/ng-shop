@@ -10,6 +10,7 @@ import { CurrencyPipe } from '@angular/common';
 import { CheckoutFacade } from '@features/checkout/checkout.facade';
 import { CheckoutFormGroup } from './checkout.model';
 import { Router } from '@angular/router';
+import { MaskDirective } from '@shared/directives';
 
 @Component({
   selector: 'app-checkout-form',
@@ -21,7 +22,8 @@ import { Router } from '@angular/router';
     MatButtonModule,
     MatDividerModule,
     MatIconModule,
-    CurrencyPipe
+    CurrencyPipe,
+    MaskDirective
   ],
   providers: [CheckoutFacade],
   templateUrl: './checkout-form.component.html',
@@ -44,5 +46,10 @@ export class CheckoutFormComponent {
 
   protected goBackToCart(): void {
     this.router.navigate(['/cart']);
+  }
+
+  constructor() {
+
+    this.checkoutForm.valueChanges.subscribe(console.log);
   }
 }

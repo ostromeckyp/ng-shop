@@ -67,7 +67,7 @@
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Phone</mat-label>
-                  <input matInput formControlName="phone" required>
+                  <input matInput formControlName="phone" appMask="000-000-000" dropSpecialCharacters required>
                   @if (checkoutForm.get('customerInfo.phone')?.invalid && checkoutForm.get('customerInfo.phone')?.touched) {
                     <mat-error>Please enter a valid phone number</mat-error>
                   }
@@ -106,7 +106,7 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>ZIP Code</mat-label>
-                  <input matInput formControlName="zipCode" required>
+                  <input matInput formControlName="zipCode" placeholder="00-000" appMask="00-000" required>
                   @if (checkoutForm.get('shippingAddress.zipCode')?.invalid && checkoutForm.get('shippingAddress.zipCode')?.touched) {
                     <mat-error>Please enter a valid ZIP code</mat-error>
                   }
@@ -135,7 +135,10 @@
               </mat-form-field>
               <mat-form-field appearance="outline" class="w-full mb-4">
                 <mat-label>Card Number</mat-label>
-                <input matInput formControlName="cardNumber" placeholder="1234567890123456" required>
+                <input
+                  matInput formControlName="cardNumber" placeholder="0000 0000 0000 0000"
+                  appMask="0000 0000 0000 0000" dropSpecialCharacters required
+                >
                 @if (checkoutForm.get('paymentInfo.cardNumber')?.invalid && checkoutForm.get('paymentInfo.cardNumber')?.touched) {
                   <mat-error>Please enter a valid 16-digit card number</mat-error>
                 }
@@ -143,14 +146,14 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>Expiry Date</mat-label>
-                  <input matInput formControlName="expiryDate" placeholder="MM/YY" required>
+                  <input matInput formControlName="expiryDate" placeholder="MM/YY" appMask="00/00" required>
                   @if (checkoutForm.get('paymentInfo.expiryDate')?.invalid && checkoutForm.get('paymentInfo.expiryDate')?.touched) {
                     <mat-error>Please enter expiry date (MM/YY)</mat-error>
                   }
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-label>CVV</mat-label>
-                  <input matInput formControlName="cvv" placeholder="123" required>
+                  <input matInput formControlName="cvv" placeholder="123" appMask="000" required>
                   @if (checkoutForm.get('paymentInfo.cvv')?.invalid && checkoutForm.get('paymentInfo.cvv')?.touched) {
                     <mat-error>Please enter a valid CVV</mat-error>
                   }
