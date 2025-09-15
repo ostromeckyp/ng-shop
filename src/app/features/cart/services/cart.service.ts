@@ -1,7 +1,7 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { Product } from '@features/products/models/product.model';
 import { CartItem } from '../model/cart-item.model';
-import { catchError, map, of, Subject, tap } from 'rxjs';
+import { catchError, map, merge, of, share, Subject, tap } from 'rxjs';
 import { connect } from 'ngxtension/connect';
 import { injectLocalStorage } from 'ngxtension/inject-local-storage';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -54,15 +54,45 @@ export class CartService {
             : item) : [...this.items(), {product, quantity: 1}];
       }),
       tap((items: CartItem[]) => {
-        this.cart.set(items);
+        // this.cart.set(items);
         addItemSuccess$.next(items);
       }),
       catchError(err => {
         addItemError$.next(err);
-        return of([])
+        return of(this.items());
       }),
       takeUntilDestroyed()
     ).subscribe();
+
+    const cartCleared$ = this.clearCart$.pipe(
+      map(() => {
+        return [] as CartItem[];
+      }), share());
+
+
+    const itemRemoved$ = this.removeFromCart$.pipe(
+      map((productId) =>
+        this.items().filter(item => item.product.id !== productId)
+      ), share());
+
+    const itemDecreased$ = this.decreaseItem$.pipe(
+      map((productId) => {
+        const existingItemIndex = this.items().findIndex(i => i.product.id === productId);
+        if (existingItemIndex >= 0) {
+          return this.items().map(item =>
+            item.product.id === productId
+              ? {...item, quantity: item.quantity -= 1} : item);
+        }
+        return this.items();
+      }),
+      share()
+    );
+
+    merge(cartCleared$, addItemSuccess$, itemRemoved$, itemDecreased$).pipe(
+      tap((value) => this.cart.set(value)),
+      takeUntilDestroyed()
+    ).subscribe()
+
 
     // Approach 2
     // const itemAdded$ = this.addItem$.pipe(
@@ -99,27 +129,21 @@ export class CartService {
           };
         })
       .with(
-        this.clearCart$, (state, productId) => ({
+        cartCleared$, (state, productId) => ({
           ...state,
           items: []
         }))
-      .with(this.removeFromCart$, (state, productId) => {
+      .with(itemRemoved$, (state, items) => {
         return {
           ...state,
-          items: state.items.filter(item => item.product.id !== productId)
+          items
         }
       })
-      .with(this.decreaseItem$, (state, productId) => {
-        const existingItemIndex = state.items.findIndex(i => i.product.id === productId);
-        if (existingItemIndex >= 0) {
-          return {
-            ...state,
-            items: state.items.map(item =>
-              item.product.id === productId
-                ? {...item, quantity: item.quantity -= 1} : item),
-          };
-        }
-        return state;
+      .with(itemDecreased$, (state, items) => {
+        return {
+          ...state,
+          items
+        };
       })
     // TODO - when you uncomment - add share to itemAdded$
     // .with(itemAdded$, (state, productId) => {

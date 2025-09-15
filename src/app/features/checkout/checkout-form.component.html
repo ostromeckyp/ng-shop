@@ -1,20 +1,5 @@
 <div class="max-w-7xl mx-auto p-5">
-  @if (isEmpty()) {
-    <mat-card class="max-w-lg mx-auto my-12 text-center">
-      <mat-card-header>
-        <mat-card-title>Your cart is empty</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Add some items to your cart before proceeding to checkout.</p>
-      </mat-card-content>
-      <mat-card-actions class="justify-center">
-        <button mat-raised-button color="primary" (click)="goBackToCart()" class="flex items-center gap-2">
-          <mat-icon>shopping_cart</mat-icon>
-          Go to Products
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  } @else if (isOrderComplete()) {
+  @if (isOrderComplete()) {
     <mat-card class="max-w-lg mx-auto my-12 text-center">
       <mat-card-header>
         <mat-card-title class="flex items-center justify-center gap-2">

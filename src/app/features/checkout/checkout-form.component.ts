@@ -34,7 +34,6 @@ export class CheckoutFormComponent {
   protected readonly checkoutForm: CheckoutFormGroup = this.facade.checkoutForm;
   protected readonly cartItems = this.facade.cartItems;
   protected readonly totalPrice = this.facade.totalPrice;
-  protected readonly isEmpty = this.facade.isEmpty;
 
   protected readonly isSubmitting = this.facade.isSubmitting;
   protected readonly isOrderComplete = this.facade.isOrderComplete;

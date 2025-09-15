@@ -1,0 +1,64 @@
+<div class="products-container">
+  <h1>Products</h1>
+
+  <div class="search-container">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search products</mat-label>
+      <input
+        matInput
+        placeholder="Search by name or description..."
+        [(ngModel)]="searchFilter"
+        type="text"
+      >
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="products-grid">
+    @if (isLoading()) {
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <app-product-card-skeleton></app-product-card-skeleton>
+      }
+    } @else {
+      @for (product of filteredProducts(); track product.id) {
+        <mat-card class="product-card">
+          <div class="product-card__image">
+            <img
+              mat-card-image [ngSrc]="product.imageUrl"
+              sizes="(max-width: 600px) 80vw, 25vw"
+              fill
+              placeholder="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              [alt]="product.name" priority
+            >
+          </div>
+          <mat-card-header>
+            <mat-card-title>{{ product.name }}</mat-card-title>
+            <mat-card-subtitle>${{ product.price.toFixed(2) }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ product.description }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button color="primary" (click)="addToCart(product)">
+              <mat-icon>shopping_cart</mat-icon>
+              Add to Cart
+            </button>
+            <button mat-button color="accent">
+              <mat-icon>info</mat-icon>
+              Details
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      } @empty {
+        <div class="no-products">
+          @if (searchFilter()) {
+            <p>No products found matching "{{ searchFilter() }}".</p>
+            <p>Try adjusting your search terms.</p>
+          } @else {
+            <p>No products available.</p>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
