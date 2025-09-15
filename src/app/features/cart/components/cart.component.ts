@@ -32,7 +32,7 @@ export class CartComponent {
   protected readonly totalPrice = this.cartService.totalPrice;
   protected readonly isEmpty = this.cartService.isEmpty;
 
-  protected removeFromCart(productId: number): void {
+  protected removeFromCart(productId: string): void {
     this.cartService.removeFromCart(productId);
   }
 
@@ -40,14 +40,14 @@ export class CartComponent {
     this.cartService.clearCart();
   }
 
-  protected increaseQuantity(productId: number): void {
+  protected increaseQuantity(productId: string): void {
     const item = this.cartService.getItem(productId)();
     if (item) {
       this.cartService.addToCart(item.product);
     }
   }
 
-  protected decreaseQuantity(productId: number): void {
+  protected decreaseQuantity(productId: string): void {
     this.cartService.decreaseItem(productId);
   }
 

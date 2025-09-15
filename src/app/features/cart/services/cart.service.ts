@@ -34,8 +34,8 @@ export class CartService {
 
   // sources
   private readonly addItem$ = new Subject<Product>();
-  private readonly removeFromCart$ = new Subject<number>();
-  private readonly decreaseItem$ = new Subject<number>();
+  private readonly removeFromCart$ = new Subject<string>();
+  private readonly decreaseItem$ = new Subject<string>();
   private readonly clearCart$ = new Subject<void>();
 
   //side effects
@@ -48,10 +48,12 @@ export class CartService {
     this.addItem$.pipe(
       map((product: Product) => {
         const existingItemIndex = this.items().findIndex(i => i.product.id === product.id);
-        return existingItemIndex >= 0 ? this.items().map(item =>
-          item.product.id === product.id
-            ? {...item, quantity: item.quantity + 1}
-            : item) : [...this.items(), {product, quantity: 1}];
+        return existingItemIndex >= 0
+          ? this.items().map(item =>
+            item.product.id === product.id
+              ? {...item, quantity: item.quantity + 1}
+              : item)
+          : [...this.items(), {product, quantity: 1}];
       }),
       tap((items: CartItem[]) => {
         // this.cart.set(items);
@@ -159,11 +161,11 @@ export class CartService {
     this.addItem$.next(item);
   }
 
-  removeFromCart(productId: number): void {
+  removeFromCart(productId: string): void {
     this.removeFromCart$.next(productId);
   }
 
-  decreaseItem(productId: number): void {
+  decreaseItem(productId: string): void {
     this.decreaseItem$.next(productId);
   }
 
@@ -171,7 +173,7 @@ export class CartService {
     this.clearCart$.next();
   }
 
-  getItem(productId: number) {
+  getItem(productId: string) {
     return computed(() => this.items().find(item => item.product.id === productId));
   }
 }

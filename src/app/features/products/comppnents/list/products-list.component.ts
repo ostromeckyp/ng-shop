@@ -32,7 +32,8 @@ export class ProductsListComponent {
 
   protected readonly searchFilter = this.productsService.searchFilter;
   protected readonly isLoading = this.productsService.isLoading;
-  protected readonly filteredProducts = this.productsService.filteredProducts;
+  protected readonly error = this.productsService.error;
+  protected readonly filteredProducts = this.productsService.products;
 
   protected addToCart(product: Product): void {
     this.productsService.addToCart(product);

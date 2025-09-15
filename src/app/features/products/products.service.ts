@@ -11,7 +11,6 @@ import { CartService } from '@features/cart';
   providedIn: 'root'
 })
 export class ProductsService {
-  private readonly url = `assets/data/products.json`;
   private readonly injector = inject(Injector);
   private readonly cartService = inject(CartService);
 
@@ -19,37 +18,44 @@ export class ProductsService {
   private readonly queryParam = injectQueryParams('search');
   private readonly setQuery = injectSetQuery();
 
+  readonly searchFilter = signal(this.queryParam() ?? '');
+  private readonly filter = derivedFrom([this.searchFilter], pipe(
+    map(([value]) => value.toLowerCase().trim()),
+    debounceTime(300)
+  ), {initialValue: this.searchFilter()});
+  private readonly url = computed(() => {
+    const filter = this.filter();
+    const query = filter ? `?q=${filter}` : '';
+    return `/api/products${query}`
+  });
 
   // Resource
   private readonly productsResource = httpResource<Product[]>(
-    () => this.url,
-    {parse: (data) => ProductsSchema.parse(data), defaultValue: [], injector: this.injector}
+    () => this.url(),
+    {
+      parse: (data) => ProductsSchema.parse(data),
+      defaultValue: [],
+      injector: this.injector
+    }
   );
   readonly products = this.productsResource.value.asReadonly();
   readonly isLoading = this.productsResource.isLoading;
   readonly error = this.productsResource.error;
 
 
-  readonly searchFilter = signal(this.queryParam() ?? '');
-  private readonly filter = derivedFrom([this.searchFilter], pipe(
-    map(([value]) => value.toLowerCase().trim()),
-    debounceTime(300)
-  ), {initialValue: this.searchFilter()});
-
-
-  readonly filteredProducts = computed(() => {
-    const filter = this.filter();
-    const allProducts = this.products();
-
-    if (!filter) {
-      return allProducts;
-    }
-
-    return allProducts.filter(product =>
-      product.name.toLowerCase().includes(filter) ||
-      product.description.toLowerCase().includes(filter)
-    );
-  });
+  // readonly filteredProducts = computed(() => {
+  //   const filter = this.filter();
+  //   const allProducts = this.products();
+  //
+  //   if (!filter) {
+  //     return allProducts;
+  //   }
+  //
+  //   return allProducts.filter(product =>
+  //     product.name.toLowerCase().includes(filter) ||
+  //     product.description.toLowerCase().includes(filter)
+  //   );
+  // });
 
 
   private readonly queryParamEffect = effect(() => {
@@ -57,6 +63,12 @@ export class ProductsService {
     untracked(() => {
       this.setQuery.setQueryParam('search', queryParamValue);
     });
+  });
+
+  private readonly errorEffect = effect(() => {
+    if (this.error()) {
+      console.error('Error loading products:', this.error());
+    }
   });
 
   addToCart(product: Product): void {
